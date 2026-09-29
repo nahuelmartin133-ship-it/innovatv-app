@@ -69,14 +69,18 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
 
-        // Tocar el video para mostrar/ocultar controles
+        // Tocar el video para mostrar/ocultar TODA la interfaz
         binding.videoLayout.setOnClickListener {
-            if (binding.btnPlayPause.visibility == View.VISIBLE) {
-                binding.btnPlayPause.visibility = View.GONE
+            if (binding.infoCanal.visibility == View.VISIBLE) {
+                ocultarInterfaz()
             } else {
-                binding.btnPlayPause.visibility = View.VISIBLE
+                mostrarInterfaz()
             }
         }
+
+        // Mostrar la interfaz al inicio por 5 segundos
+        mostrarInterfaz()
+        programarOcultar()
 
         iniciarReproductor()
 
@@ -165,6 +169,26 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private var ocultarHandler: android.os.Handler? = null
+    private var ocultarRunnable: Runnable? = null
+
+    private fun mostrarInterfaz() {
+        binding.infoCanal.visibility = View.VISIBLE
+        binding.btnPlayPause.visibility = View.VISIBLE
+    }
+
+    private fun ocultarInterfaz() {
+        binding.infoCanal.visibility = View.GONE
+        binding.btnPlayPause.visibility = View.GONE
+    }
+
+    private fun programarOcultar() {
+        ocultarHandler?.removeCallbacks(ocultarRunnable ?: return)
+        ocultarRunnable = Runnable { ocultarInterfaz() }
+        ocultarHandler = android.os.Handler(android.os.Looper.getMainLooper())
+        ocultarHandler?.postDelayed(ocultarRunnable!!, 5000)
+    }
+
     private fun cargarEPG() {
         lifecycleScope.launch {
             try {
@@ -193,6 +217,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        ocultarHandler?.removeCallbacks(ocultarRunnable ?: return)
         mediaPlayer?.stop()
         mediaPlayer?.detachViews()
         mediaPlayer?.release()
