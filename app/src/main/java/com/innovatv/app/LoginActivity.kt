@@ -2,12 +2,13 @@ package com.innovatv.app
 
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.innovatv.app.api.XtreamClient
+import com.innovatv.app.config.AppConfig
 import com.innovatv.app.databinding.ActivityLoginBinding
 import kotlinx.coroutines.launch
 
@@ -23,6 +24,13 @@ class LoginActivity : AppCompatActivity() {
 
         prefs = getSharedPreferences("innovatv", MODE_PRIVATE)
 
+        // Cargar config del servidor y aplicar
+        lifecycleScope.launch {
+            val servidorGuardado = prefs.getString("servidor", "https://innovatv.dpdns.org") ?: "https://innovatv.dpdns.org"
+            AppConfig.cargar(servidorGuardado)
+            aplicarColores()
+        }
+
         // Si ya hay sesion guardada, ir directo al Main
         val usuarioGuardado = prefs.getString("usuario", null)
         val passwordGuardado = prefs.getString("password", null)
@@ -32,7 +40,7 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
-        // Precargar servidor por defecto
+        // Precargar servidor
         binding.editServidor.setText("https://innovatv.dpdns.org")
 
         binding.btnLogin.setOnClickListener {
@@ -49,6 +57,27 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    private fun aplicarColores() {
+        // Fondo
+        binding.root.setBackgroundColor(AppConfig.colorFondo)
+        window.decorView.setBackgroundColor(AppConfig.colorFondo)
+
+        // Textos dinamicos
+        binding.textTitulo.text = AppConfig.nombreApp
+        binding.textEslogan.text = AppConfig.eslogan
+
+        // Color del boton
+        binding.btnLogin.backgroundTintList = android.content.res.ColorStateList.valueOf(AppConfig.colorPrimario)
+
+        // Color del titulo
+        binding.textTitulo.setTextColor(AppConfig.colorPrimario)
+
+        // Color de los bordes de los inputs
+        binding.editUsuario.setTextColor(AppConfig.colorPrimario)
+        binding.editPassword.setTextColor(AppConfig.colorPrimario)
+        binding.editServidor.setTextColor(AppConfig.colorPrimario)
+    }
+
     private fun hacerLogin(servidor: String, usuario: String, password: String) {
         binding.progressLogin.visibility = View.VISIBLE
         binding.btnLogin.isEnabled = false
@@ -56,6 +85,9 @@ class LoginActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
+                AppConfig.limpiarCache()
+                AppConfig.cargar(servidor)
+
                 val client = XtreamClient()
                 client.configurar(servidor, usuario, password)
                 val ok = client.verificarLogin()

@@ -20,15 +20,17 @@
             android:contentDescription="@string/app_name" />
 
         <TextView
+            android:id="@+id/textTitulo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/login_title"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/primary"
             android:textSize="28sp"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
 
         <TextView
+            android:id="@+id/textEslogan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/login_subtitle"
