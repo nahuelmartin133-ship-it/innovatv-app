@@ -1,9 +1,11 @@
 package com.innovatv.app
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.view.Gravity
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -43,21 +45,17 @@ class MainActivity : AppCompatActivity() {
         client = XtreamClient()
         client.configurar(servidor, usuario, password)
 
-        // Info del menu lateral
         binding.menuUsuario.text = usuario
         binding.menuServidor.text = servidor
 
-        // Boton menu
         binding.btnMenu.setOnClickListener {
             binding.drawerLayout.openDrawer(GravityCompat.START)
         }
 
-        // Boton buscar
         binding.btnBuscar.setOnClickListener {
-            // TODO: implementar busqueda
+            // TODO: busqueda
         }
 
-        // Menu lateral
         binding.menuInicio.setOnClickListener {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
         }
@@ -71,53 +69,74 @@ class MainActivity : AppCompatActivity() {
         binding.menuCerrarSesion.setOnClickListener {
             val prefs = getSharedPreferences("innovatv", MODE_PRIVATE)
             prefs.edit().clear().apply()
+            AppConfig.limpiarCache()
             val intent = Intent(this, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
         }
 
-        // Pestanas
-        binding.tabLive.setOnClickListener { cambiarPestana(true) }
-        binding.tabMovies.setOnClickListener { cambiarPestana(false) }
+        binding.tabLiveContainer.setOnClickListener { cambiarPestana(true) }
+        binding.tabMoviesContainer.setOnClickListener { cambiarPestana(false) }
 
         // Cargar config del servidor y aplicar
         lifecycleScope.launch {
             AppConfig.limpiarCache()
             AppConfig.cargar(servidor)
             aplicarColores()
+            construirChips()
         }
 
         cargarTodo()
     }
 
     private fun aplicarColores() {
-        // Fondo del contenedor principal
+        // Fondo del contenedor
         binding.containerPrincipal.setBackgroundColor(AppConfig.colorFondo)
+
+        // Barra superior con gradiente del color primario
+        val gradienteBarra = GradientDrawable(
+            GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(AppConfig.colorPrimario, oscurecerColor(AppConfig.colorPrimario))
+        )
+        binding.barraSuperior.background = gradienteBarra
+
+        // Cabecera del menu lateral
+        val gradienteMenu = GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            intArrayOf(AppConfig.colorPrimario, oscurecerColor(AppConfig.colorPrimario))
+        )
+        binding.cabeceraMenu.background = gradienteMenu
 
         // Nombre de la app
         binding.textNombreApp.text = AppConfig.nombreApp
-        binding.textNombreApp.setTextColor(AppConfig.colorPrimario)
+        binding.textNombreApp.setTextColor(Color.WHITE)
 
-        // Info del menu lateral
-        binding.menuUsuario.text = usuario
-
-        // Color de las pestanas (Live activa al inicio)
+        // Color de las pestañas
         binding.tabLive.setTextColor(AppConfig.colorPrimario)
+        binding.indicadorLive.setBackgroundColor(AppConfig.colorPrimario)
+        binding.indicadorMovies.setBackgroundColor(AppConfig.colorPrimario)
+    }
+
+    private fun oscurecerColor(color: Int): Int {
+        val r = (Color.red(color) * 0.6).toInt()
+        val g = (Color.green(color) * 0.6).toInt()
+        val b = (Color.blue(color) * 0.6).toInt()
+        return Color.rgb(r, g, b)
     }
 
     private fun cambiarPestana(esLive: Boolean) {
         mostrandoCanales = esLive
         if (esLive) {
             binding.tabLive.setTextColor(AppConfig.colorPrimario)
-            binding.tabLive.setBackgroundColor(AppConfig.colorFondo)
             binding.tabMovies.setTextColor(getColor(R.color.text_secondary))
-            binding.tabMovies.setBackgroundColor(getColor(android.R.color.transparent))
+            binding.indicadorLive.visibility = View.VISIBLE
+            binding.indicadorMovies.visibility = View.INVISIBLE
         } else {
             binding.tabMovies.setTextColor(AppConfig.colorPrimario)
-            binding.tabMovies.setBackgroundColor(AppConfig.colorFondo)
             binding.tabLive.setTextColor(getColor(R.color.text_secondary))
-            binding.tabLive.setBackgroundColor(getColor(android.R.color.transparent))
+            binding.indicadorMovies.visibility = View.VISIBLE
+            binding.indicadorLive.visibility = View.INVISIBLE
         }
         categoriaActual = "Todas"
         construirChips()
@@ -149,23 +168,34 @@ class MainActivity : AppCompatActivity() {
             nombres.addAll(categorias.map { it.nombre })
         }
         for (nombre in nombres) {
+            val activo = nombre == categoriaActual
             val chip = TextView(this).apply {
                 text = nombre
-                setPadding(32, 16, 32, 16)
-                setTextColor(if (nombre == categoriaActual) getColor(R.color.white) else getColor(R.color.text_primary))
-                setBackgroundColor(if (nombre == categoriaActual) getColor(R.color.primary_dark) else getColor(R.color.surface))
+                setPadding(40, 18, 40, 18)
+                setTextColor(if (activo) Color.WHITE else getColor(R.color.text_primary))
                 textSize = 13f
+                isAllCaps = false
+                val bg = GradientDrawable().apply {
+                    cornerRadius = 60f
+                    if (activo) {
+                        setColor(AppConfig.colorPrimario)
+                    } else {
+                        setColor(getColor(R.color.surface_variant))
+                        setStroke(2, getColor(R.color.border))
+                    }
+                }
+                background = bg
                 setOnClickListener {
                     categoriaActual = nombre
                     construirChips()
                     actualizarLista()
                 }
             }
-            val params = android.widget.LinearLayout.LayoutParams(
-                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
-                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            params.setMargins(4, 0, 4, 0)
+            params.setMargins(6, 4, 6, 4)
             chip.layoutParams = params
             binding.containerCategorias.addView(chip)
         }
