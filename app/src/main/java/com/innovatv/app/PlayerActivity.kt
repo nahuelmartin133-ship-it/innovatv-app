@@ -9,6 +9,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.okhttp.OkHttpDataSource
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 import com.innovatv.app.api.XtreamClient
 import com.innovatv.app.databinding.ActivityPlayerBinding
 import kotlinx.coroutines.launch
@@ -66,8 +69,19 @@ class PlayerActivity : AppCompatActivity() {
             client.urlPelicula(streamId, extension)
         }
 
+        // Cliente OkHttp que sigue redirects cross-protocol (HTTPS -> HTTP)
+        val okHttpClient = OkHttpClient.Builder()
+            .followRedirects(true)
+            .followSslRedirects(true)
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .build()
+
+        val dataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
+            .setUserAgent("VLC/3.0.18 LibVLC/3.0.18")
+
         player = ExoPlayer.Builder(this)
-            .setMediaSourceFactory(DefaultMediaSourceFactory(this))
+            .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
             .build()
 
         binding.playerView.player = player
