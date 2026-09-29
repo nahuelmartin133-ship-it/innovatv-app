@@ -73,12 +73,16 @@ class PlayerActivity : AppCompatActivity() {
         val okHttpClient = OkHttpClient.Builder()
             .followRedirects(true)
             .followSslRedirects(true)
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
             .build()
 
         val dataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
             .setUserAgent("VLC/3.0.18 LibVLC/3.0.18")
+            .setDefaultRequestProperties(mapOf(
+                "Accept" to "*/*",
+                "Connection" to "keep-alive"
+            ))
 
         player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
