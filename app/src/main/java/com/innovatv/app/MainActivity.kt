@@ -10,6 +10,7 @@ import androidx.core.view.GravityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.innovatv.app.api.XtreamClient
+import com.innovatv.app.config.AppConfig
 import com.innovatv.app.databinding.ActivityMainBinding
 import com.innovatv.app.models.Canal
 import com.innovatv.app.models.Categoria
@@ -80,19 +81,41 @@ class MainActivity : AppCompatActivity() {
         binding.tabLive.setOnClickListener { cambiarPestana(true) }
         binding.tabMovies.setOnClickListener { cambiarPestana(false) }
 
+        // Cargar config del servidor y aplicar
+        lifecycleScope.launch {
+            AppConfig.limpiarCache()
+            AppConfig.cargar(servidor)
+            aplicarColores()
+        }
+
         cargarTodo()
+    }
+
+    private fun aplicarColores() {
+        // Fondo del contenedor principal
+        binding.containerPrincipal.setBackgroundColor(AppConfig.colorFondo)
+
+        // Nombre de la app
+        binding.textNombreApp.text = AppConfig.nombreApp
+        binding.textNombreApp.setTextColor(AppConfig.colorPrimario)
+
+        // Info del menu lateral
+        binding.menuUsuario.text = usuario
+
+        // Color de las pestanas (Live activa al inicio)
+        binding.tabLive.setTextColor(AppConfig.colorPrimario)
     }
 
     private fun cambiarPestana(esLive: Boolean) {
         mostrandoCanales = esLive
         if (esLive) {
-            binding.tabLive.setTextColor(getColor(R.color.primary))
-            binding.tabLive.setBackgroundColor(getColor(R.color.background))
+            binding.tabLive.setTextColor(AppConfig.colorPrimario)
+            binding.tabLive.setBackgroundColor(AppConfig.colorFondo)
             binding.tabMovies.setTextColor(getColor(R.color.text_secondary))
             binding.tabMovies.setBackgroundColor(getColor(android.R.color.transparent))
         } else {
-            binding.tabMovies.setTextColor(getColor(R.color.primary))
-            binding.tabMovies.setBackgroundColor(getColor(R.color.background))
+            binding.tabMovies.setTextColor(AppConfig.colorPrimario)
+            binding.tabMovies.setBackgroundColor(AppConfig.colorFondo)
             binding.tabLive.setTextColor(getColor(R.color.text_secondary))
             binding.tabLive.setBackgroundColor(getColor(android.R.color.transparent))
         }

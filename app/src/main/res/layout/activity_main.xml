@@ -8,6 +8,7 @@
 
     <!-- Contenido principal -->
     <LinearLayout
+        android:id="@+id/containerPrincipal"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -33,6 +34,7 @@
                 android:contentDescription="Menú" />
 
             <TextView
+                android:id="@+id/textNombreApp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
