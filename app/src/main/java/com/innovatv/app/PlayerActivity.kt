@@ -53,6 +53,30 @@ class PlayerActivity : AppCompatActivity() {
         // Mantener pantalla encendida
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
+        // Boton volver
+        binding.btnVolver.setOnClickListener { finish() }
+
+        // Boton play/pause
+        binding.btnPlayPause.setOnClickListener {
+            if (mediaPlayer?.isPlaying == true) {
+                mediaPlayer?.pause()
+                binding.btnPlayPause.setImageResource(android.R.drawable.ic_media_play)
+                binding.btnPlayPause.visibility = View.VISIBLE
+            } else {
+                mediaPlayer?.play()
+                binding.btnPlayPause.setImageResource(android.R.drawable.ic_media_pause)
+            }
+        }
+
+        // Tocar el video para mostrar/ocultar controles
+        binding.videoLayout.setOnClickListener {
+            if (binding.btnPlayPause.visibility == View.VISIBLE) {
+                binding.btnPlayPause.visibility = View.GONE
+            } else {
+                binding.btnPlayPause.visibility = View.VISIBLE
+            }
+        }
+
         iniciarReproductor()
 
         // Cargar EPG si es canal en vivo
@@ -90,6 +114,15 @@ class PlayerActivity : AppCompatActivity() {
                 MediaPlayer.Event.Playing -> {
                     binding.progressPlayer.visibility = View.GONE
                     binding.textErrorPlayer.visibility = View.GONE
+                    binding.btnPlayPause.setImageResource(android.R.drawable.ic_media_pause)
+                }
+                MediaPlayer.Event.Paused -> {
+                    binding.btnPlayPause.setImageResource(android.R.drawable.ic_media_play)
+                    binding.btnPlayPause.visibility = View.VISIBLE
+                }
+                MediaPlayer.Event.EndReached -> {
+                    binding.btnPlayPause.setImageResource(android.R.drawable.ic_media_play)
+                    binding.btnPlayPause.visibility = View.VISIBLE
                 }
                 MediaPlayer.Event.Buffering -> {
                     if (event.buffering < 100f) {
