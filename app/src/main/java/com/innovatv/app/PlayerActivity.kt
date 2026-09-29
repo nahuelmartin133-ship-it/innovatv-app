@@ -94,15 +94,25 @@ class PlayerActivity : AppCompatActivity() {
             client.urlPelicula(streamId, extension)
         }
 
+        // Leer preferencias del usuario
+        val bufferMs = prefs.getInt("buffer", 1500)
+        val aspect = prefs.getString("aspect", "fit") ?: "fit"
+
         // Configurar libVLC
         val opciones = arrayListOf(
             "--no-drop-late-frames",
             "--no-skip-frames",
-            "--network-caching=1500",
+            "--network-caching=$bufferMs",
             "--rtsp-tcp",
             "--http-referrer=" + servidor,
             "--http-user-agent=VLC/3.0.18 LibVLC/3.0.18"
         )
+
+        // Configurar aspect ratio
+        when (aspect) {
+            "fill" -> opciones.add("--aspect-ratio=16:9")
+            "16_9" -> opciones.add("--aspect-ratio=16:9")
+        }
 
         libVLC = LibVLC(this, opciones)
         mediaPlayer = MediaPlayer(libVLC)

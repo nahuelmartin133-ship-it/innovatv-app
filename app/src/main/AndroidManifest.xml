@@ -28,6 +28,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".AjustesActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".PlayerActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"

@@ -63,7 +63,8 @@ class MainActivity : AppCompatActivity() {
 
         binding.menuAjustes.setOnClickListener {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
-            // TODO: pantalla de ajustes
+            val intent = Intent(this, AjustesActivity::class.java)
+            startActivity(intent)
         }
 
         binding.menuCerrarSesion.setOnClickListener {

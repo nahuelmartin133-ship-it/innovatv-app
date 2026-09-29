@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Barra superior -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@color/surface"
+            android:padding="12dp"
+            android:gravity="center_vertical"
+            android:elevation="4dp">
+
+            <ImageButton
+                android:id="@+id/btnAtras"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_revert"
+                android:tint="@color/text_primary"
+                android:contentDescription="Volver" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Ajustes"
+                android:textColor="@color/primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Info de la cuenta -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="MI CUENTA"
+                android:textColor="@color/primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Usuario:"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                android:layout_marginTop="10dp" />
+
+            <TextView
+                android:id="@+id/textUsuario"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="?"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Servidor:"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                android:layout_marginTop="10dp" />
+
+            <TextView
+                android:id="@+id/textServidor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="?"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <!-- Buffer -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="BUFFER DE RED"
+                android:textColor="@color/primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Más buffer = menos cortes, pero más demora al cargar."
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
+
+            <RadioGroup
+                android:id="@+id/radioGroupBuffer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp">
+
+                <RadioButton
+                    android:id="@+id/radioBufferBajo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Bajo (500 ms) - Más rápido"
+                    android:textColor="@color/text_primary" />
+
+                <RadioButton
+                    android:id="@+id/radioBufferMedio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Medio (1500 ms) - Recomendado"
+                    android:textColor="@color/text_primary" />
+
+                <RadioButton
+                    android:id="@+id/radioBufferAlto"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Alto (3000 ms) - Más estable"
+                    android:textColor="@color/text_primary" />
+            </RadioGroup>
+
+            <!-- Aspect ratio -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="MODO DE PANTALLA"
+                android:textColor="@color/primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp" />
+
+            <RadioGroup
+                android:id="@+id/radioGroupAspect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp">
+
+                <RadioButton
+                    android:id="@+id/radioAspectFit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Ajustar (mantener proporción)"
+                    android:textColor="@color/text_primary" />
+
+                <RadioButton
+                    android:id="@+id/radioAspectFill"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Llenar pantalla (puede recortar)"
+                    android:textColor="@color/text_primary" />
+
+                <RadioButton
+                    android:id="@+id/radioAspect16_9"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Forzar 16:9"
+                    android:textColor="@color/text_primary" />
+            </RadioGroup>
+
+            <!-- Boton cerrar sesion -->
+            <Button
+                android:id="@+id/btnCerrarSesion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:backgroundTint="@color/error"
+                android:text="Cerrar sesión"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
