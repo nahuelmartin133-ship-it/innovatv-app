@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Innova TV</string>
+    <string name="login_title">Innova TV Argentina</string>
+    <string name="login_subtitle">Disfruta de una buena programación 24/7</string>
+    <string name="login_usuario">Usuario</string>
+    <string name="login_password">Contraseña</string>
+    <string name="login_servidor">Servidor</string>
+    <string name="login_boton">Iniciar sesión</string>
+    <string name="login_error">Usuario o contraseña incorrectos</string>
+    <string name="login_cargando">Iniciando sesión...</string>
+    <string name="canales_titulo">Canales</string>
+    <string name="peliculas_titulo">Películas</string>
+    <string name="volver">Volver</string>
+    <string name="cargando">Cargando...</string>
+    <string name="sin_conexion">Sin conexión a internet</string>
+    <string name="cerrar_sesion">Cerrar sesión</string>
+</resources>
