@@ -5,23 +5,21 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.MediaItem
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.okhttp.OkHttpDataSource
-import okhttp3.OkHttpClient
-import java.util.concurrent.TimeUnit
 import com.innovatv.app.api.XtreamClient
 import com.innovatv.app.databinding.ActivityPlayerBinding
 import kotlinx.coroutines.launch
+import org.videolan.libvlc.LibVLC
+import org.videolan.libvlc.Media
+import org.videolan.libvlc.MediaPlayer
+import org.videolan.libvlc.util.VLCVideoLayout
 
-@UnstableApi
 class PlayerActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPlayerBinding
-    private var player: ExoPlayer? = null
     private lateinit var client: XtreamClient
+
+    private var libVLC: LibVLC? = null
+    private var mediaPlayer: MediaPlayer? = null
 
     private var servidor = ""
     private var usuario = ""
@@ -52,6 +50,9 @@ class PlayerActivity : AppCompatActivity() {
         client = XtreamClient()
         client.configurar(servidor, usuario, password)
 
+        // Mantener pantalla encendida
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
         iniciarReproductor()
 
         // Cargar EPG si es canal en vivo
@@ -69,48 +70,55 @@ class PlayerActivity : AppCompatActivity() {
             client.urlPelicula(streamId, extension)
         }
 
-        // Cliente OkHttp que sigue redirects cross-protocol (HTTPS -> HTTP)
-        val okHttpClient = OkHttpClient.Builder()
-            .followRedirects(true)
-            .followSslRedirects(true)
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .build()
+        // Configurar libVLC
+        val opciones = arrayListOf(
+            "--no-drop-late-frames",
+            "--no-skip-frames",
+            "--network-caching=1500",
+            "--rtsp-tcp",
+            "--http-referrer=" + servidor,
+            "--http-user-agent=VLC/3.0.18 LibVLC/3.0.18"
+        )
 
-        val dataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
-            .setUserAgent("VLC/3.0.18 LibVLC/3.0.18")
-            .setDefaultRequestProperties(mapOf(
-                "Accept" to "*/*",
-                "Connection" to "keep-alive"
-            ))
+        libVLC = LibVLC(this, opciones)
+        mediaPlayer = MediaPlayer(libVLC)
 
-        player = ExoPlayer.Builder(this)
-            .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
-            .build()
+        mediaPlayer?.attachViews(binding.videoLayout, null, false, false)
 
-        binding.playerView.player = player
-
-        val mediaItem = MediaItem.fromUri(url)
-        player?.setMediaItem(mediaItem)
-        player?.prepare()
-        player?.playWhenReady = true
-
-        player?.addListener(object : androidx.media3.common.Player.Listener {
-            override fun onPlaybackStateChanged(state: Int) {
-                if (state == androidx.media3.common.Player.STATE_READY) {
+        mediaPlayer?.setEventListener { event ->
+            when (event.type) {
+                MediaPlayer.Event.Playing -> {
                     binding.progressPlayer.visibility = View.GONE
-                } else if (state == androidx.media3.common.Player.STATE_BUFFERING) {
-                    binding.progressPlayer.visibility = View.VISIBLE
+                    binding.textErrorPlayer.visibility = View.GONE
+                }
+                MediaPlayer.Event.Buffering -> {
+                    if (event.buffering < 100f) {
+                        binding.progressPlayer.visibility = View.VISIBLE
+                    } else {
+                        binding.progressPlayer.visibility = View.GONE
+                    }
+                }
+                MediaPlayer.Event.EncounteredError -> {
+                    binding.progressPlayer.visibility = View.GONE
+                    binding.textErrorPlayer.text = "Error de reproducción"
+                    binding.textErrorPlayer.visibility = View.VISIBLE
+                    Toast.makeText(this@PlayerActivity, "Error al reproducir", Toast.LENGTH_LONG).show()
                 }
             }
+        }
 
-            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
-                binding.progressPlayer.visibility = View.GONE
-                binding.textErrorPlayer.text = "Error: ${error.message}"
-                binding.textErrorPlayer.visibility = View.VISIBLE
-                Toast.makeText(this@PlayerActivity, "Error de reproducción", Toast.LENGTH_LONG).show()
-            }
-        })
+        try {
+            val media = Media(libVLC, android.net.Uri.parse(url))
+            media.setHWDecoderEnabled(true, false)
+            media.addOption(":network-caching=1500")
+            mediaPlayer?.media = media
+            media.release()
+            mediaPlayer?.play()
+        } catch (e: Exception) {
+            binding.progressPlayer.visibility = View.GONE
+            binding.textErrorPlayer.text = "Error: ${e.message}"
+            binding.textErrorPlayer.visibility = View.VISIBLE
+        }
     }
 
     private fun cargarEPG() {
@@ -131,17 +139,21 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        player?.pause()
+        mediaPlayer?.pause()
     }
 
     override fun onResume() {
         super.onResume()
-        player?.play()
+        mediaPlayer?.play()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        player?.release()
-        player = null
+        mediaPlayer?.stop()
+        mediaPlayer?.detachViews()
+        mediaPlayer?.release()
+        mediaPlayer = null
+        libVLC?.release()
+        libVLC = null
     }
 }

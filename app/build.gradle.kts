@@ -55,11 +55,8 @@ dependencies {
     // JSON
     implementation("com.google.code.gson:gson:2.10.1")
 
-    // ExoPlayer (Media3)
-    implementation("androidx.media3:media3-exoplayer:1.2.1")
-    implementation("androidx.media3:media3-exoplayer-hls:1.2.1")
-    implementation("androidx.media3:media3-ui:1.2.1")
-    implementation("androidx.media3:media3-datasource-okhttp:1.2.1")
+    // libVLC (reproductor de VLC)
+    implementation("org.videolan.android:libvlc-all:3.6.0")
 
     // Image loading
     implementation("com.github.bumptech.glide:glide:4.16.0")
