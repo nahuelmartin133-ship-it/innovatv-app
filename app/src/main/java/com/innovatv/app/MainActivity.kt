@@ -8,7 +8,7 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.Glide
 import com.innovatv.app.api.XtreamClient
 import com.innovatv.app.databinding.ActivityMainBinding
@@ -114,7 +114,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun mostrarCanales(lista: List<Canal>) {
         binding.textVacio.visibility = if (lista.isEmpty()) View.VISIBLE else View.GONE
-        binding.recyclerCanales.layoutManager = LinearLayoutManager(this)
+        binding.recyclerCanales.layoutManager = GridLayoutManager(this, 2)
         binding.recyclerCanales.adapter = CanalesAdapter(lista) { canal ->
             val intent = Intent(this, PlayerActivity::class.java)
             intent.putExtra("tipo", "live")
@@ -126,7 +126,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun mostrarPeliculas(lista: List<Pelicula>) {
         binding.textVacio.visibility = if (lista.isEmpty()) View.VISIBLE else View.GONE
-        binding.recyclerCanales.layoutManager = LinearLayoutManager(this)
+        binding.recyclerCanales.layoutManager = GridLayoutManager(this, 2)
         binding.recyclerCanales.adapter = PeliculasAdapter(lista) { peli ->
             val intent = Intent(this, PlayerActivity::class.java)
             intent.putExtra("tipo", "vod")
