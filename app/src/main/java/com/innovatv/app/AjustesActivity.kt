@@ -36,7 +36,7 @@ class AjustesActivity : AppCompatActivity() {
         when (aspectActual) {
             "fit" -> binding.radioAspectFit.isChecked = true
             "fill" -> binding.radioAspectFill.isChecked = true
-            "16_9" -> binding.radioAspect16_9.isChecked = true
+            "16_9" -> binding.radioAspect169.isChecked = true
         }
 
         // Guardar buffer
@@ -54,7 +54,7 @@ class AjustesActivity : AppCompatActivity() {
         binding.radioGroupAspect.setOnCheckedChangeListener { _, id ->
             val valor = when (id) {
                 R.id.radioAspectFill -> "fill"
-                R.id.radioAspect16_9 -> "16_9"
+                R.id.radioAspect169 -> "16_9"
                 else -> "fit"
             }
             prefs.edit().putString("aspect", valor).apply()

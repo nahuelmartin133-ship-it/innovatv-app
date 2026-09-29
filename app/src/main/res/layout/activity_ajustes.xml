@@ -169,7 +169,7 @@
                     android:textColor="@color/text_primary" />
 
                 <RadioButton
-                    android:id="@+id/radioAspect16_9"
+                    android:id="@+id/radioAspect169"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Forzar 16:9"

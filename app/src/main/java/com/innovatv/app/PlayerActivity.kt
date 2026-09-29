@@ -28,6 +28,7 @@ class PlayerActivity : AppCompatActivity() {
     private var streamId = 0
     private var nombre = ""
     private var extension = "mp4"
+    private lateinit var prefs: android.content.SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +36,7 @@ class PlayerActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Leer datos guardados
-        val prefs = getSharedPreferences("innovatv", MODE_PRIVATE)
+        prefs = getSharedPreferences("innovatv", MODE_PRIVATE)
         servidor = prefs.getString("servidor", "") ?: ""
         usuario = prefs.getString("usuario", "") ?: ""
         password = prefs.getString("password", "") ?: ""
