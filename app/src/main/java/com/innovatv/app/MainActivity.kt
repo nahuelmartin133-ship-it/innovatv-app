@@ -2,18 +2,15 @@ package com.innovatv.app
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Toast
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import com.bumptech.glide.Glide
 import com.innovatv.app.api.XtreamClient
 import com.innovatv.app.databinding.ActivityMainBinding
-import com.innovatv.app.databinding.ItemCanalBinding
-import com.innovatv.app.databinding.ItemPeliculaBinding
 import com.innovatv.app.models.Canal
 import com.innovatv.app.models.Categoria
 import com.innovatv.app.models.Pelicula
@@ -31,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private var peliculas: List<Pelicula> = emptyList()
     private var categorias: List<Categoria> = emptyList()
     private var mostrandoCanales = true
+    private var categoriaActual: String = "Todas"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,21 +42,62 @@ class MainActivity : AppCompatActivity() {
         client = XtreamClient()
         client.configurar(servidor, usuario, password)
 
-        binding.btnCanales.setOnClickListener {
-            mostrandoCanales = true
-            binding.btnCanales.setBackgroundColor(getColor(R.color.primary_dark))
-            binding.btnPeliculas.setBackgroundColor(getColor(R.color.surface_variant))
-            actualizarLista()
+        // Info del menu lateral
+        binding.menuUsuario.text = usuario
+        binding.menuServidor.text = servidor
+
+        // Boton menu
+        binding.btnMenu.setOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
         }
 
-        binding.btnPeliculas.setOnClickListener {
-            mostrandoCanales = false
-            binding.btnPeliculas.setBackgroundColor(getColor(R.color.primary_dark))
-            binding.btnCanales.setBackgroundColor(getColor(R.color.surface_variant))
-            actualizarLista()
+        // Boton buscar
+        binding.btnBuscar.setOnClickListener {
+            // TODO: implementar busqueda
         }
+
+        // Menu lateral
+        binding.menuInicio.setOnClickListener {
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        binding.menuAjustes.setOnClickListener {
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+            // TODO: pantalla de ajustes
+        }
+
+        binding.menuCerrarSesion.setOnClickListener {
+            val prefs = getSharedPreferences("innovatv", MODE_PRIVATE)
+            prefs.edit().clear().apply()
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+        }
+
+        // Pestanas
+        binding.tabLive.setOnClickListener { cambiarPestana(true) }
+        binding.tabMovies.setOnClickListener { cambiarPestana(false) }
 
         cargarTodo()
+    }
+
+    private fun cambiarPestana(esLive: Boolean) {
+        mostrandoCanales = esLive
+        if (esLive) {
+            binding.tabLive.setTextColor(getColor(R.color.primary))
+            binding.tabLive.setBackgroundColor(getColor(R.color.background))
+            binding.tabMovies.setTextColor(getColor(R.color.text_secondary))
+            binding.tabMovies.setBackgroundColor(getColor(android.R.color.transparent))
+        } else {
+            binding.tabMovies.setTextColor(getColor(R.color.primary))
+            binding.tabMovies.setBackgroundColor(getColor(R.color.background))
+            binding.tabLive.setTextColor(getColor(R.color.text_secondary))
+            binding.tabLive.setBackgroundColor(getColor(android.R.color.transparent))
+        }
+        categoriaActual = "Todas"
+        construirChips()
+        actualizarLista()
     }
 
     private fun cargarTodo() {
@@ -71,39 +110,49 @@ class MainActivity : AppCompatActivity() {
                 peliculas = client.obtenerPeliculas()
 
                 binding.progressMain.visibility = View.GONE
-                binding.spinnerCategorias.visibility = View.VISIBLE
-                configurarSpinner()
+                construirChips()
                 actualizarLista()
             } catch (e: Exception) {
                 binding.progressMain.visibility = View.GONE
-                Toast.makeText(this@MainActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    private fun configurarSpinner() {
+    private fun construirChips() {
+        binding.containerCategorias.removeAllViews()
         val nombres = mutableListOf("Todas")
-        nombres.addAll(categorias.map { it.nombre })
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, nombres)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerCategorias.adapter = adapter
-
-        binding.spinnerCategorias.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                actualizarLista()
+        if (mostrandoCanales) {
+            nombres.addAll(categorias.map { it.nombre })
+        }
+        for (nombre in nombres) {
+            val chip = TextView(this).apply {
+                text = nombre
+                setPadding(32, 16, 32, 16)
+                setTextColor(if (nombre == categoriaActual) getColor(R.color.white) else getColor(R.color.text_primary))
+                setBackgroundColor(if (nombre == categoriaActual) getColor(R.color.primary_dark) else getColor(R.color.surface))
+                textSize = 13f
+                setOnClickListener {
+                    categoriaActual = nombre
+                    construirChips()
+                    actualizarLista()
+                }
             }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            val params = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            params.setMargins(4, 0, 4, 0)
+            chip.layoutParams = params
+            binding.containerCategorias.addView(chip)
         }
     }
 
     private fun actualizarLista() {
-        val catSeleccionada = binding.spinnerCategorias.selectedItem?.toString() ?: "Todas"
-
         if (mostrandoCanales) {
-            val filtrados = if (catSeleccionada == "Todas") {
+            val filtrados = if (categoriaActual == "Todas") {
                 canales
             } else {
-                val catId = categorias.firstOrNull { it.nombre == catSeleccionada }?.id ?: ""
+                val catId = categorias.firstOrNull { it.nombre == categoriaActual }?.id ?: ""
                 canales.filter { it.categoriaId == catId }
             }
             mostrarCanales(filtrados)
@@ -134,6 +183,14 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("nombre", peli.titulo)
             intent.putExtra("extension", peli.extension)
             startActivity(intent)
+        }
+    }
+
+    override fun onBackPressed() {
+        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
         }
     }
 }
