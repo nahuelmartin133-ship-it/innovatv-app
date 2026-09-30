@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnBuscar.setOnClickListener {
-            // TODO: busqueda
+            abrirBusqueda()
         }
 
         binding.menuInicio.setOnClickListener {
@@ -79,6 +79,19 @@ class MainActivity : AppCompatActivity() {
 
         binding.tabLiveContainer.setOnClickListener { cambiarPestana(true) }
         binding.tabMoviesContainer.setOnClickListener { cambiarPestana(false) }
+
+        // Conectar busqueda
+        binding.editBusqueda.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                buscar(s?.toString() ?: "")
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
+
+        binding.btnCancelarBusqueda.setOnClickListener {
+            cerrarBusqueda()
+        }
 
         // Cargar config del servidor y aplicar
         lifecycleScope.launch {
@@ -362,8 +375,78 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
+    private fun abrirBusqueda() {
+        binding.overlayBusqueda.visibility = View.VISIBLE
+        binding.editBusqueda.text.clear()
+        binding.textSinResultados.text = "Escribí para buscar..."
+        binding.textSinResultados.visibility = View.VISIBLE
+        binding.recyclerBusqueda.adapter = null
+        binding.editBusqueda.requestFocus()
+        // Abrir teclado
+        val imm = getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        imm.showSoftInput(binding.editBusqueda, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun cerrarBusqueda() {
+        binding.overlayBusqueda.visibility = View.GONE
+        // Cerrar teclado
+        val imm = getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        imm.hideSoftInputFromWindow(binding.editBusqueda.windowToken, 0)
+    }
+
+    private fun buscar(texto: String) {
+        val query = texto.trim().lowercase()
+        if (query.isEmpty()) {
+            binding.textSinResultados.text = "Escribí para buscar..."
+            binding.textSinResultados.visibility = View.VISIBLE
+            binding.recyclerBusqueda.adapter = null
+            return
+        }
+
+        if (mostrandoCanales) {
+            val resultados = canales.filter { it.nombre.lowercase().contains(query) }
+            if (resultados.isEmpty()) {
+                binding.textSinResultados.text = "No se encontraron canales"
+                binding.textSinResultados.visibility = View.VISIBLE
+                binding.recyclerBusqueda.adapter = null
+            } else {
+                binding.textSinResultados.visibility = View.GONE
+                binding.recyclerBusqueda.layoutManager = GridLayoutManager(this, 2)
+                binding.recyclerBusqueda.adapter = CanalesAdapter(resultados) { canal ->
+                    cerrarBusqueda()
+                    val intent = Intent(this, PlayerActivity::class.java)
+                    intent.putExtra("tipo", "live")
+                    intent.putExtra("streamId", canal.streamId)
+                    intent.putExtra("nombre", canal.nombre)
+                    startActivity(intent)
+                }
+            }
+        } else {
+            val resultados = peliculas.filter { it.titulo.lowercase().contains(query) }
+            if (resultados.isEmpty()) {
+                binding.textSinResultados.text = "No se encontraron películas"
+                binding.textSinResultados.visibility = View.VISIBLE
+                binding.recyclerBusqueda.adapter = null
+            } else {
+                binding.textSinResultados.visibility = View.GONE
+                binding.recyclerBusqueda.layoutManager = GridLayoutManager(this, 2)
+                binding.recyclerBusqueda.adapter = PeliculasAdapter(resultados) { peli ->
+                    cerrarBusqueda()
+                    val intent = Intent(this, PlayerActivity::class.java)
+                    intent.putExtra("tipo", "vod")
+                    intent.putExtra("streamId", peli.id)
+                    intent.putExtra("nombre", peli.titulo)
+                    intent.putExtra("extension", peli.extension)
+                    startActivity(intent)
+                }
+            }
+        }
+    }
+
     override fun onBackPressed() {
-        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+        if (binding.overlayBusqueda.visibility == View.VISIBLE) {
+            cerrarBusqueda()
+        } else if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
         } else {
             super.onBackPressed()
