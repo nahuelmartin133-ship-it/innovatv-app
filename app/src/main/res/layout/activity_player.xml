@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootPlayer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black">
@@ -10,22 +11,22 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Info del canal (arriba) -->
+    <!-- ========== BARRA SUPERIOR ========== -->
     <LinearLayout
-        android:id="@+id/infoCanal"
+        android:id="@+id/barraSuperior"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top"
         android:orientation="horizontal"
-        android:background="#80000000"
+        android:background="@drawable/gradiente_superior"
         android:padding="12dp"
         android:gravity="center_vertical">
 
         <ImageButton
             android:id="@+id/btnVolver"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?android:attr/selectableItemBackground"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_revert"
             android:tint="@color/white"
             android:contentDescription="Volver" />
@@ -43,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:text="Canal"
                 android:textColor="@color/white"
-                android:textSize="16sp"
+                android:textSize="17sp"
                 android:textStyle="bold"
                 android:maxLines="1"
                 android:ellipsize="end" />
@@ -61,26 +62,166 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- ========== BARRA INFERIOR ========== -->
+    <LinearLayout
+        android:id="@+id/barraInferior"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:background="@drawable/gradiente_inferior"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="16dp">
+
+        <!-- Barra de progreso (solo VOD) -->
+        <LinearLayout
+            android:id="@+id/containerProgreso"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <SeekBar
+                android:id="@+id/seekBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progressTint="@color/primary"
+                android:thumbTint="@color/primary" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="2dp">
+
+                <TextView
+                    android:id="@+id/textTiempoActual"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="00:00"
+                    android:textColor="@color/white"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/textTiempoTotal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="00:00"
+                    android:textColor="@color/white"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Controles principales -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
+
+            <!-- Volumen -->
+            <ImageButton
+                android:id="@+id/btnVolumen"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_lock_silent_mode_off"
+                android:tint="@color/white"
+                android:contentDescription="Volumen" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <!-- Canal anterior -->
+                <ImageButton
+                    android:id="@+id/btnAnterior"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_media_previous"
+                    android:tint="@color/white"
+                    android:contentDescription="Anterior" />
+
+                <!-- Play/Pause -->
+                <ImageButton
+                    android:id="@+id/btnPlayPause"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_media_play"
+                    android:tint="@color/white"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Play/Pause" />
+
+                <!-- Canal siguiente -->
+                <ImageButton
+                    android:id="@+id/btnSiguiente"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_media_next"
+                    android:tint="@color/white"
+                    android:contentDescription="Siguiente" />
+            </LinearLayout>
+
+            <!-- Aspecto -->
+            <ImageButton
+                android:id="@+id/btnAspecto"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_crop"
+                android:tint="@color/white"
+                android:contentDescription="Aspecto" />
+
+        </LinearLayout>
+
+        <!-- Slider de volumen (se muestra al tocar el icono) -->
+        <LinearLayout
+            android:id="@+id/containerVolumen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone"
+            android:paddingHorizontal="8dp"
+            android:layout_marginTop="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔊"
+                android:textSize="16sp" />
+
+            <SeekBar
+                android:id="@+id/seekVolumen"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:max="100"
+                android:progress="100"
+                android:progressTint="@color/primary"
+                android:thumbTint="@color/primary" />
+        </LinearLayout>
+
+    </LinearLayout>
+
     <!-- Loading spinner -->
     <ProgressBar
         android:id="@+id/progressPlayer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:layout_gravity="center"
         android:visibility="gone" />
-
-    <!-- Botón Play/Pause central -->
-    <ImageButton
-        android:id="@+id/btnPlayPause"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:layout_gravity="center"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:src="@android:drawable/ic_media_play"
-        android:tint="@color/white"
-        android:scaleType="fitCenter"
-        android:visibility="gone"
-        android:contentDescription="Play/Pause" />
 
     <!-- Error -->
     <TextView
