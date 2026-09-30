@@ -7,6 +7,7 @@ import com.innovatv.app.models.Canal
 import com.innovatv.app.models.Categoria
 import com.innovatv.app.models.Pelicula
 import com.innovatv.app.models.ProgramitaEPG
+import com.innovatv.app.models.ResultadoLogin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -153,6 +154,23 @@ class XtreamClient {
             resultado
         } catch (e: Exception) {
             emptyMap()
+        }
+    }
+
+    suspend fun loginCompleto(): ResultadoLogin {
+        return try {
+            val json = get(baseUrl())
+            val obj = JsonParser.parseString(json).asJsonObject
+            val info = obj.getAsJsonObject("user_info") ?: return ResultadoLogin(false, mensaje = "Sin respuesta del servidor")
+            val auth = info.get("auth")?.asInt ?: 0
+            if (auth != 1) {
+                return ResultadoLogin(false, mensaje = "Usuario o contrasena incorrectos")
+            }
+            val expDate = info.get("exp_date")?.asString ?: ""
+            val contacto = info.get("contacto_reseller")?.asString ?: ""
+            ResultadoLogin(exito = true, expDate = expDate, contactoReseller = contacto)
+        } catch (e: Exception) {
+            ResultadoLogin(false, mensaje = "Error: ${e.message}")
         }
     }
 

@@ -28,6 +28,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".VencidaActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".AjustesActivity"
             android:exported="false" />
 

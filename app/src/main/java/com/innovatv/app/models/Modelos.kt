@@ -36,3 +36,10 @@ data class ProgramitaEPG(
     val inicio: String,
     val fin: String
 )
+
+data class ResultadoLogin(
+    val exito: Boolean,
+    val expDate: String = "",
+    val contactoReseller: String = "",
+    val mensaje: String = ""
+)

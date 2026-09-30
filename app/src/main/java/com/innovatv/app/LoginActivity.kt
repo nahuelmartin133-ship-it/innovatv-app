@@ -90,26 +90,59 @@ class LoginActivity : AppCompatActivity() {
 
                 val client = XtreamClient()
                 client.configurar(servidor, usuario, password)
-                val ok = client.verificarLogin()
+                val resultado = client.loginCompleto()
 
                 binding.progressLogin.visibility = View.GONE
                 binding.btnLogin.isEnabled = true
 
-                if (ok) {
-                    prefs.edit()
-                        .putString("servidor", servidor)
-                        .putString("usuario", usuario)
-                        .putString("password", password)
-                        .apply()
-                    irAlMain(servidor, usuario, password)
-                } else {
-                    mostrarError(getString(R.string.login_error))
+                if (!resultado.exito) {
+                    mostrarError(resultado.mensaje.ifEmpty { getString(R.string.login_error) })
+                    return@launch
                 }
+
+                // Verificar vencimiento
+                if (estaVencido(resultado.expDate)) {
+                    // Cuenta vencida -> mostrar pantalla
+                    val intent = Intent(this@LoginActivity, VencidaActivity::class.java)
+                    intent.putExtra("fecha", resultado.expDate)
+                    intent.putExtra("contacto", resultado.contactoReseller)
+                    startActivity(intent)
+                    return@launch
+                }
+
+                // Todo bien -> guardar y entrar
+                prefs.edit()
+                    .putString("servidor", servidor)
+                    .putString("usuario", usuario)
+                    .putString("password", password)
+                    .putString("exp_date", resultado.expDate)
+                    .putString("contacto_reseller", resultado.contactoReseller)
+                    .apply()
+                irAlMain(servidor, usuario, password)
             } catch (e: Exception) {
                 binding.progressLogin.visibility = View.GONE
                 binding.btnLogin.isEnabled = true
                 mostrarError("Error: ${e.message}")
             }
+        }
+    }
+
+    private fun estaVencido(expDate: String): Boolean {
+        if (expDate.isEmpty()) return false
+        return try {
+            // Formato esperado: "2026-12-31" o "2026-12-31 23:59:59"
+            val formato = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+            val fechaVencimiento = formato.parse(expDate.split(" ")[0]) ?: return false
+            // Comparar: vencido si la fecha de vencimiento es anterior a hoy
+            val hoy = java.util.Calendar.getInstance().apply {
+                set(java.util.Calendar.HOUR_OF_DAY, 0)
+                set(java.util.Calendar.MINUTE, 0)
+                set(java.util.Calendar.SECOND, 0)
+                set(java.util.Calendar.MILLISECOND, 0)
+            }.time
+            fechaVencimiento.before(hoy)
+        } catch (e: Exception) {
+            false
         }
     }
 
