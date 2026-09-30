@@ -250,14 +250,50 @@ class MainActivity : AppCompatActivity() {
         verificarVencimiento()
     }
 
+    private var ultimaVerificacion: Long = 0
+
     private fun verificarVencimiento() {
+        // Limitar a 1 verificacion cada 5 minutos
+        val ahora = System.currentTimeMillis()
+        if (ahora - ultimaVerificacion < 5 * 60 * 1000) return
+        ultimaVerificacion = ahora
+
         val prefs = getSharedPreferences("innovatv", MODE_PRIVATE)
-        val expDate = prefs.getString("exp_date", "") ?: ""
-        val contacto = prefs.getString("contacto_reseller", "") ?: ""
-        if (expDate.isEmpty()) return
-        val vencido = try {
+        val usuario = prefs.getString("usuario", "") ?: ""
+        val password = prefs.getString("password", "") ?: ""
+        if (usuario.isEmpty() || password.isEmpty()) return
+
+        lifecycleScope.launch {
+            try {
+                val cliente = XtreamClient()
+                cliente.configurar(servidor, usuario, password)
+                val resultado = cliente.loginCompleto()
+                if (!resultado.exito) {
+                    // Fallo el login -> cuenta invalida o vencida
+                    irAVencida(resultado.expDate, resultado.contactoReseller)
+                    return@launch
+                }
+                // Verificar vencimiento con la fecha del servidor
+                if (estaVencido(resultado.expDate)) {
+                    irAVencida(resultado.expDate, resultado.contactoReseller)
+                    return@launch
+                }
+                // Actualizar exp_date y contacto en prefs
+                prefs.edit()
+                    .putString("exp_date", resultado.expDate)
+                    .putString("contacto_reseller", resultado.contactoReseller)
+                    .apply()
+            } catch (e: Exception) {
+                // Sin internet o error -> no hacer nada
+            }
+        }
+    }
+
+    private fun estaVencido(expDate: String): Boolean {
+        if (expDate.isEmpty()) return false
+        return try {
             val formato = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
-            val fechaVencimiento = formato.parse(expDate.split(" ")[0]) ?: return
+            val fechaVencimiento = formato.parse(expDate.split(" ")[0]) ?: return false
             val hoy = java.util.Calendar.getInstance().apply {
                 set(java.util.Calendar.HOUR_OF_DAY, 0)
                 set(java.util.Calendar.MINUTE, 0)
@@ -268,16 +304,18 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             false
         }
-        if (vencido) {
-            prefs.edit().clear().apply()
-            AppConfig.limpiarCache()
-            val intent = Intent(this, VencidaActivity::class.java)
-            intent.putExtra("fecha", expDate)
-            intent.putExtra("contacto", contacto)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
-        }
+    }
+
+    private fun irAVencida(expDate: String, contacto: String) {
+        val prefs = getSharedPreferences("innovatv", MODE_PRIVATE)
+        prefs.edit().clear().apply()
+        AppConfig.limpiarCache()
+        val intent = Intent(this, VencidaActivity::class.java)
+        intent.putExtra("fecha", expDate)
+        intent.putExtra("contacto", contacto)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 
     override fun onBackPressed() {
