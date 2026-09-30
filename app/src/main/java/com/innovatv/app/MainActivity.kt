@@ -394,8 +394,43 @@ class MainActivity : AppCompatActivity() {
         imm.hideSoftInputFromWindow(binding.editBusqueda.windowToken, 0)
     }
 
+    private fun normalizar(texto: String): String {
+        var t = texto.lowercase()
+        val reemplazos = mapOf(
+            'á' to 'a', 'é' to 'e', 'í' to 'i', 'ó' to 'o', 'ú' to 'u',
+            'à' to 'a', 'è' to 'e', 'ì' to 'i', 'ò' to 'o', 'ù' to 'u',
+            'ä' to 'a', 'ë' to 'e', 'ï' to 'i', 'ö' to 'o', 'ü' to 'u',
+            'ñ' to 'n', 'ç' to 'c'
+        )
+        for ((k, v) in reemplazos) {
+            t = t.replace(k, v)
+        }
+        t = t.replace(Regex("[^a-z0-9 ]"), " ")
+        t = t.replace(Regex(" +"), " ").trim()
+        return t
+    }
+
+    private fun coincideBusqueda(consulta: String, texto: String): Boolean {
+        val q = normalizar(consulta)
+        val t = normalizar(texto)
+        if (q.isEmpty()) return false
+        val palabras = q.split(" ")
+        return palabras.all { t.contains(it) }
+    }
+
+    private fun puntuacion(consulta: String, texto: String): Int {
+        val q = normalizar(consulta)
+        val t = normalizar(texto)
+        var score = 0
+        if (t.startsWith(q)) score += 100
+        if (t.contains(q)) score += 50
+        val idx = t.indexOf(q)
+        if (idx >= 0) score += (50 - idx).coerceAtLeast(0)
+        return score
+    }
+
     private fun buscar(texto: String) {
-        val query = texto.trim().lowercase()
+        val query = texto.trim()
         if (query.isEmpty()) {
             binding.textSinResultados.text = "Escribí para buscar..."
             binding.textSinResultados.visibility = View.VISIBLE
@@ -404,7 +439,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (mostrandoCanales) {
-            val resultados = canales.filter { it.nombre.lowercase().contains(query) }
+            val resultados = canales.filter { canal ->
+                coincideBusqueda(query, canal.nombre) || coincideBusqueda(query, canal.categoria)
+            }.sortedByDescending { c ->
+                maxOf(puntuacion(query, c.nombre), puntuacion(query, c.categoria))
+            }
+
             if (resultados.isEmpty()) {
                 binding.textSinResultados.text = "No se encontraron canales"
                 binding.textSinResultados.visibility = View.VISIBLE
@@ -422,7 +462,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         } else {
-            val resultados = peliculas.filter { it.titulo.lowercase().contains(query) }
+            val resultados = peliculas.filter { peli ->
+                coincideBusqueda(query, peli.titulo) || coincideBusqueda(query, peli.categoria)
+            }.sortedByDescending { p ->
+                maxOf(puntuacion(query, p.titulo), puntuacion(query, p.categoria))
+            }
+
             if (resultados.isEmpty()) {
                 binding.textSinResultados.text = "No se encontraron películas"
                 binding.textSinResultados.visibility = View.VISIBLE
