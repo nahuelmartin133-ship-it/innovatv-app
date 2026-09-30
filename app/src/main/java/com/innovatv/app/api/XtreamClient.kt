@@ -142,6 +142,20 @@ class XtreamClient {
         }
     }
 
+    suspend fun obtenerBulkEPG(): Map<String, String> {
+        return try {
+            val json = get("${baseUrl()}&action=get_bulk_epg")
+            val obj = JsonParser.parseString(json).asJsonObject
+            val resultado = mutableMapOf<String, String>()
+            for (key in obj.keySet()) {
+                resultado[key] = obj.get(key)?.asString ?: ""
+            }
+            resultado
+        } catch (e: Exception) {
+            emptyMap()
+        }
+    }
+
     fun urlStream(streamId: Int): String {
         return "$servidor/live/$usuario/$password/$streamId.m3u8"
     }

@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private var categorias: List<Categoria> = emptyList()
     private var mostrandoCanales = true
     private var categoriaActual: String = "Todas"
+    private var mapaEPG: Map<String, String> = emptyMap()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -151,6 +152,10 @@ class MainActivity : AppCompatActivity() {
                 categorias = client.obtenerCategorias()
                 canales = client.obtenerCanales()
                 peliculas = client.obtenerPeliculas()
+                mapaEPG = client.obtenerBulkEPG()
+                canales = canales.map { c ->
+                    c.copy(epgActual = mapaEPG[c.num.toString()] ?: "")
+                }
 
                 binding.progressMain.visibility = View.GONE
                 construirChips()

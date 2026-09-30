@@ -17,7 +17,8 @@ data class Canal(
     val categoria: String,
     val categoriaId: String,
     val logo: String,
-    val streamId: Int
+    val streamId: Int,
+    val epgActual: String = ""
 )
 
 data class Pelicula(

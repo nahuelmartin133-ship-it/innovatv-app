@@ -28,6 +28,15 @@ class CanalesAdapter(
         holder.binding.textCategoria.text = canal.categoria
         holder.binding.textNumero.text = canal.num.toString()
 
+        if (canal.epgActual.isNotEmpty()) {
+            holder.binding.textEPG.text = canal.epgActual
+            holder.binding.textEPG.visibility = android.view.View.VISIBLE
+            holder.binding.textCategoria.visibility = android.view.View.GONE
+        } else {
+            holder.binding.textEPG.visibility = android.view.View.GONE
+            holder.binding.textCategoria.visibility = android.view.View.VISIBLE
+        }
+
         if (canal.logo.isNotEmpty()) {
             Glide.with(holder.itemView.context)
                 .load(canal.logo)
