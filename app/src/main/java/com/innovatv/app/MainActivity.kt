@@ -117,6 +117,50 @@ class MainActivity : AppCompatActivity() {
         binding.tabLive.setTextColor(AppConfig.colorPrimario)
         binding.indicadorLive.setBackgroundColor(AppConfig.colorPrimario)
         binding.indicadorMovies.setBackgroundColor(AppConfig.colorPrimario)
+
+        // Info del menu lateral
+        binding.menuUsuario.text = usuario
+        binding.menuServidor.text = servidor
+
+        // Mostrar vencimiento
+        actualizarVencimiento()
+    }
+
+    private fun actualizarVencimiento() {
+        val prefs = getSharedPreferences("innovatv", MODE_PRIVATE)
+        val expDate = prefs.getString("exp_date", "") ?: ""
+        if (expDate.isEmpty()) {
+            binding.menuVencimiento.visibility = View.GONE
+            return
+        }
+        try {
+            val formato = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+            val fechaVencimiento = formato.parse(expDate.split(" ")[0]) ?: return
+            val hoy = java.util.Calendar.getInstance().apply {
+                set(java.util.Calendar.HOUR_OF_DAY, 0)
+                set(java.util.Calendar.MINUTE, 0)
+                set(java.util.Calendar.SECOND, 0)
+                set(java.util.Calendar.MILLISECOND, 0)
+            }.time
+            val diff = fechaVencimiento.time - hoy.time
+            val dias = (diff / (1000 * 60 * 60 * 24)).toInt()
+            binding.menuVencimiento.visibility = View.VISIBLE
+            if (dias > 1) {
+                binding.menuVencimiento.text = "Vence en $dias dias"
+                binding.menuVencimiento.setTextColor(android.graphics.Color.WHITE)
+            } else if (dias == 1) {
+                binding.menuVencimiento.text = "Vence manana"
+                binding.menuVencimiento.setTextColor(android.graphics.Color.parseColor("#FFC107"))
+            } else if (dias == 0) {
+                binding.menuVencimiento.text = "Vence hoy"
+                binding.menuVencimiento.setTextColor(android.graphics.Color.parseColor("#FF9800"))
+            } else {
+                binding.menuVencimiento.text = "Vencida"
+                binding.menuVencimiento.setTextColor(android.graphics.Color.parseColor("#F85149"))
+            }
+        } catch (e: Exception) {
+            binding.menuVencimiento.visibility = View.GONE
+        }
     }
 
     private fun oscurecerColor(color: Int): Int {

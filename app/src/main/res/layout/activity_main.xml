@@ -213,6 +213,19 @@
                 android:textColor="#CCFFFFFF"
                 android:textSize="12sp"
                 android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/menuVencimiento"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="6dp"
+                android:background="#40FFFFFF" />
         </LinearLayout>
 
         <!-- Opciones -->
