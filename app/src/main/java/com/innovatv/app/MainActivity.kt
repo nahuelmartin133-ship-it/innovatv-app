@@ -245,6 +245,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        verificarVencimiento()
+    }
+
+    private fun verificarVencimiento() {
+        val prefs = getSharedPreferences("innovatv", MODE_PRIVATE)
+        val expDate = prefs.getString("exp_date", "") ?: ""
+        val contacto = prefs.getString("contacto_reseller", "") ?: ""
+        if (expDate.isEmpty()) return
+        val vencido = try {
+            val formato = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+            val fechaVencimiento = formato.parse(expDate.split(" ")[0]) ?: return
+            val hoy = java.util.Calendar.getInstance().apply {
+                set(java.util.Calendar.HOUR_OF_DAY, 0)
+                set(java.util.Calendar.MINUTE, 0)
+                set(java.util.Calendar.SECOND, 0)
+                set(java.util.Calendar.MILLISECOND, 0)
+            }.time
+            fechaVencimiento.before(hoy)
+        } catch (e: Exception) {
+            false
+        }
+        if (vencido) {
+            prefs.edit().clear().apply()
+            AppConfig.limpiarCache()
+            val intent = Intent(this, VencidaActivity::class.java)
+            intent.putExtra("fecha", expDate)
+            intent.putExtra("contacto", contacto)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+        }
+    }
+
     override fun onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
