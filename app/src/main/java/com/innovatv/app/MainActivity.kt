@@ -414,8 +414,12 @@ class MainActivity : AppCompatActivity() {
         val q = normalizar(consulta)
         val t = normalizar(texto)
         if (q.isEmpty()) return false
-        val palabras = q.split(" ")
-        return palabras.all { t.contains(it) }
+        val palabrasConsulta = q.split(" ")
+        val palabrasTexto = t.split(" ")
+        // Cada palabra de la consulta debe coincidir con el INICIO de alguna palabra del texto
+        return palabrasConsulta.all { pConsulta ->
+            palabrasTexto.any { pTexto -> pTexto.startsWith(pConsulta) }
+        }
     }
 
     private fun puntuacion(consulta: String, texto: String): Int {
